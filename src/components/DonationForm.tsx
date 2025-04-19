@@ -58,6 +58,20 @@ const DonationForm = ({ scheme }: DonationFormProps) => {
       // Make sure to reload the latest data from local storage
       loadFromLocalStorage();
       
+      // Update the user in localStorage to reflect the new donation
+      if (user) {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        
+        // Reload the user's donations from the updated users array
+        const updatedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        const updatedUser = updatedUsers.find((u: any) => u.id === user.id);
+        
+        if (updatedUser && currentUser) {
+          currentUser.donations = updatedUser.donations;
+          localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        }
+      }
+      
       // Success message and reset form
       toast.success("Thank you for your donation!", {
         description: `$${amount} has been successfully donated to ${scheme.title}.`

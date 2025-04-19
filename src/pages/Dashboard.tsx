@@ -30,11 +30,12 @@ const Dashboard = () => {
       return;
     }
     
-    // Load data from local storage
+    // Load data from local storage to ensure we have the latest data
     loadFromLocalStorage();
     
     // Set user's donations after loading from local storage
     if (user) {
+      console.log("User donations in Dashboard:", user.donations);
       setUserDonations([...(user.donations || [])]);
     }
   }, [isAuthenticated, navigate, user]);
@@ -74,7 +75,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Donations Made</CardDescription>
-                <CardTitle className="text-3xl">{user.donations.length}</CardTitle>
+                <CardTitle className="text-3xl">{userDonations.length}</CardTitle>
               </CardHeader>
             </Card>
             
@@ -101,7 +102,7 @@ const Dashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {user.donations.length > 0 ? (
+                  {userDonations.length > 0 ? (
                     <Table>
                       <TableHeader>
                         <TableRow>

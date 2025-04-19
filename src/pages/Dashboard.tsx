@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
@@ -16,29 +16,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Donation } from '../types';
 
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [userDonations, setUserDonations] = useState<Donation[]>([]);
   
   // Redirect if not logged in
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/dashboard' } });
+      return;
     }
     
     // Load data from local storage
     loadFromLocalStorage();
-  }, [isAuthenticated, navigate]);
+    
+    // Set user's donations after loading from local storage
+    if (user) {
+      setUserDonations([...user.donations]);
+    }
+  }, [isAuthenticated, navigate, user]);
   
   if (!isAuthenticated || !user) {
     return null;
   }
   
   // Calculate user's donation statistics
-  const totalDonated = user.donations.reduce((sum, donation) => sum + donation.amount, 0);
-  const schemesSupported = new Set(user.donations.map(donation => donation.schemeId)).size;
-  const latestDonations = [...user.donations]
+  const totalDonated = userDonations.reduce((sum, donation) => sum + donation.amount, 0);
+  const schemesSupported = new Set(userDonations.map(donation => donation.schemeId)).size;
+  const latestDonations = [...userDonations]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
   

@@ -62,8 +62,8 @@ const DonationForm = ({ scheme }: DonationFormProps) => {
       setAmount('');
       setMessage('');
       
-      // Force reload to update the UI with the new donation amount
-      window.location.reload();
+      // Navigate to dashboard to see updated donation history
+      navigate('/dashboard');
     } catch (error) {
       toast.error("Failed to process donation", {
         description: "Please try again later."

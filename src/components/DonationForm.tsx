@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Scheme } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { addDonation } from '../data/schemes';
+import { addDonation, loadFromLocalStorage } from '../data/schemes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -54,6 +54,9 @@ const DonationForm = ({ scheme }: DonationFormProps) => {
         date: new Date().toISOString(),
         message: message.trim() || undefined,
       });
+      
+      // Make sure to reload the latest data from local storage
+      loadFromLocalStorage();
       
       // Success message and reset form
       toast.success("Thank you for your donation!", {

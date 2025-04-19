@@ -35,7 +35,7 @@ const Dashboard = () => {
     
     // Set user's donations after loading from local storage
     if (user) {
-      setUserDonations([...user.donations]);
+      setUserDonations([...(user.donations || [])]);
     }
   }, [isAuthenticated, navigate, user]);
   

@@ -1,5 +1,4 @@
-
-import { Scheme, User, Donation } from "../types";
+import { Scheme, User, Donation } from "./types";
 
 // Mock schemes data
 export const schemes: Scheme[] = [

@@ -1,208 +1,195 @@
-
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import DonationForm from '../components/DonationForm';
-import ProgressBar from '../components/ProgressBar';
-import { schemes, donations, loadFromLocalStorage, getHighestDonation } from '../data/schemes';
-import { Scheme, Donation } from '../types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { users } from '../data/schemes';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { schemes, getHighestDonation } from "../data/schemes";
+import DonationForm from "../components/DonationForm";
+import ProgressBar from "../components/ProgressBar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Donation } from "@/data/types";
 
 const SchemeDetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [scheme, setScheme] = useState<Scheme | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [schemeDonations, setSchemeDonations] = useState<Donation[]>([]);
-  const [highestDonation, setHighestDonation] = useState<Donation | null>(null);
-  
+  const { user } = useAuth();
+  const [scheme, setScheme] = useState(null);
+  const [showDonationForm, setShowDonationForm] = useState(false);
+  const [highestDonation, setHighestDonation] = useState(null);
+
   useEffect(() => {
-    // Load data from local storage
-    loadFromLocalStorage();
-    
-    // Find the scheme by ID
-    const foundScheme = schemes.find(s => s.id === id);
+    const foundScheme = schemes.find((s) => s.id === id);
     if (!foundScheme) {
-      navigate('/schemes');
+      navigate("/schemes");
       return;
     }
     
     setScheme(foundScheme);
     
-    // Get donations for this scheme
-    const schemeSpecificDonations = donations.filter(d => d.schemeId === id);
-    setSchemeDonations(schemeSpecificDonations);
-    
-    // Get highest donation
-    const highest = getHighestDonation(id!);
+    // Get highest donation for this scheme
+    const highest = getHighestDonation(id);
     setHighestDonation(highest);
-    
-    setLoading(false);
   }, [id, navigate]);
-  
-  // Find donor names for display
-  const getDonorName = (userId: string) => {
-    const user = users.find(u => u.id === userId);
-    return user ? user.name : 'Anonymous';
+
+  if (!scheme) return null;
+
+  const handleDonationSuccess = () => {
+    setShowDonationForm(false);
+    // Refresh highest donation
+    const highest = getHighestDonation(id);
+    setHighestDonation(highest);
   };
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center">
-          <p className="text-gray-600">Loading...</p>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-  
-  if (!scheme) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-2">Scheme not found</h2>
-            <p className="text-gray-600 mb-4">The scheme you're looking for doesn't exist or has been removed.</p>
-            <Button onClick={() => navigate('/schemes')}>
-              View All Schemes
-            </Button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-  
-  // Calculate days remaining
-  const endDate = new Date(scheme.endDate);
-  const currentDate = new Date();
-  const daysRemaining = Math.ceil((endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const daysRemaining = () => {
+    const endDate = new Date(scheme.endDate);
+    const today = new Date();
+    const diffTime = endDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow">
-        {/* Hero Section with Banner Image */}
-        <div className="w-full h-64 md:h-96 relative">
-          <img 
-            src={scheme.imageUrl} 
-            alt={scheme.title} 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-            <div className="container-custom pb-8">
-              <span className="inline-block bg-purple text-white text-sm font-medium px-3 py-1 rounded-full mb-2">
-                {scheme.category}
-              </span>
-              <h1 className="text-3xl md:text-4xl font-bold text-white">
-                {scheme.title}
-              </h1>
-            </div>
-          </div>
-        </div>
-        
-        {/* Main Content */}
-        <div className="container-custom py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            {/* Left Column - Scheme Details */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-                <h2 className="text-2xl font-semibold mb-4">About This Fundraiser</h2>
-                <p className="text-gray-700 mb-6 whitespace-pre-line">
-                  {scheme.description}
-                </p>
-                
-                <ProgressBar 
-                  current={scheme.currentAmount} 
-                  target={scheme.targetAmount}
-                  className="mb-6"
+    <div className="container mx-auto py-8 px-4">
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate("/schemes")}
+        className="mb-4"
+      >
+        ← Back to Schemes
+      </Button>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">{scheme.title}</CardTitle>
+              <CardDescription>
+                Created on {formatDate(scheme.createdAt)} • {scheme.category}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6">
+                <img 
+                  src={scheme.imageUrl} 
+                  alt={scheme.title} 
+                  className="w-full h-64 object-cover rounded-md"
                 />
+              </div>
+              <div className="space-y-4">
+                <p className="text-gray-700">{scheme.description}</p>
                 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
-                    <p className="text-sm text-gray-500">Raised</p>
-                    <p className="text-xl font-semibold text-gray-900">
-                      ${scheme.currentAmount.toLocaleString()}
-                    </p>
+                <div className="mt-6">
+                  <ProgressBar 
+                    current={scheme.currentAmount} 
+                    target={scheme.targetAmount} 
+                  />
+                </div>
+                
+                <div className="flex justify-between text-sm text-gray-500 mt-4">
+                  <div>
+                    <span className="font-medium">End Date:</span> {formatDate(scheme.endDate)}
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
-                    <p className="text-sm text-gray-500">Goal</p>
-                    <p className="text-xl font-semibold text-gray-900">
-                      ${scheme.targetAmount.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
-                    <p className="text-sm text-gray-500">Time Left</p>
-                    <p className="text-xl font-semibold text-gray-900">
-                      {daysRemaining > 0 ? `${daysRemaining} days` : 'Ended'}
-                    </p>
+                  <div>
+                    <span className="font-medium">{daysRemaining()}</span> days remaining
                   </div>
                 </div>
               </div>
-              
-              {/* Donations List */}
+            </CardContent>
+            <CardFooter>
+              <Button 
+                onClick={() => setShowDonationForm(true)} 
+                className="w-full"
+                disabled={showDonationForm}
+              >
+                Donate Now
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          {showDonationForm && (
+            <div className="mt-6">
               <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-semibold mb-4">Recent Donations</h2>
-                  
-                  {schemeDonations.length > 0 ? (
-                    <div className="space-y-4">
-                      {[...schemeDonations]
-                        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                        .slice(0, 5)
-                        .map(donation => (
-                          <div key={donation.id} className="border-b pb-4 last:border-0">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-medium">{getDonorName(donation.userId)}</p>
-                                <p className="text-sm text-gray-500">
-                                  {new Date(donation.date).toLocaleDateString()}
-                                </p>
-                                {donation.message && (
-                                  <p className="text-gray-700 mt-1 italic">"{donation.message}"</p>
-                                )}
-                              </div>
-                              <p className="text-lg font-semibold text-purple">${donation.amount}</p>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-4">
-                      No donations yet. Be the first to donate!
-                    </p>
-                  )}
-                  
-                  {/* Highest Donation Highlight */}
-                  {highestDonation && (
-                    <div className="mt-6 bg-purple-light p-4 rounded-lg">
-                      <h3 className="font-medium mb-2">Highest Donation</h3>
-                      <div className="flex justify-between items-center">
-                        <p>{getDonorName(highestDonation.userId)}</p>
-                        <p className="font-semibold">${highestDonation.amount}</p>
-                      </div>
-                    </div>
-                  )}
+                <CardHeader>
+                  <CardTitle>Make a Donation</CardTitle>
+                  <CardDescription>
+                    Support this cause with your contribution
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DonationForm 
+                    schemeId={scheme.id} 
+                    onSuccess={handleDonationSuccess}
+                    onCancel={() => setShowDonationForm(false)}
+                  />
                 </CardContent>
               </Card>
             </div>
-            
-            {/* Right Column - Donation Form */}
-            <div>
-              <div className="sticky top-6">
-                <DonationForm scheme={scheme} />
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      </main>
-      <Footer />
+        
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Scheme Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Target Amount</h3>
+                  <p className="text-lg font-semibold">${scheme.targetAmount.toLocaleString()}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Current Amount</h3>
+                  <p className="text-lg font-semibold">${scheme.currentAmount.toLocaleString()}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Category</h3>
+                  <p className="text-lg font-semibold">{scheme.category}</p>
+                </div>
+                
+                {highestDonation && (
+                  <div className="pt-4 border-t">
+                    <h3 className="text-sm font-medium text-gray-500">Highest Donation</h3>
+                    <p className="text-lg font-semibold">${highestDonation.amount.toLocaleString()}</p>
+                    {highestDonation.message && (
+                      <p className="text-sm italic mt-1">"{highestDonation.message}"</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {!user && (
+            <Card className="mt-6">
+              <CardContent className="pt-6">
+                <p className="text-center text-gray-600 mb-4">
+                  Sign in to track your donations and support more causes
+                </p>
+                <div className="flex gap-4">
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={() => navigate("/login")}
+                  >
+                    Sign In
+                  </Button>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => navigate("/register")}
+                  >
+                    Register
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

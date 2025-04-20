@@ -39,14 +39,18 @@ const SchemeDetails = () => {
     setHighestDonation(highest);
   };
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   const daysRemaining = () => {
-    const endDate = new Date(scheme.endDate);
-    const today = new Date();
+    const endDate = new Date(scheme.endDate).getTime();
+    const today = new Date().getTime();
     const diffTime = endDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;

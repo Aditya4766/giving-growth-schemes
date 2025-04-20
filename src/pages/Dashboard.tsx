@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// Import from the correct path
 import { Donation } from "@/data/types";
 
 const Dashboard = () => {
@@ -27,7 +26,6 @@ const Dashboard = () => {
   const [donations, setDonations] = useState<Donation[]>([]);
 
   useEffect(() => {
-    // Mock data for donations (replace with actual data fetching)
     const mockDonations: Donation[] = [
       {
         id: "1",
@@ -59,7 +57,7 @@ const Dashboard = () => {
   };
 
   if (!user) {
-    return null; // or a loading indicator
+    return null;
   }
 
   return (
@@ -72,7 +70,7 @@ const Dashboard = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultvalue="donations" className="w-full">
+          <Tabs defaultValue="donations" className="w-full">
             <TabsList>
               <TabsTrigger value="donations">Donations</TabsTrigger>
               <TabsTrigger value="account">Account</TabsTrigger>

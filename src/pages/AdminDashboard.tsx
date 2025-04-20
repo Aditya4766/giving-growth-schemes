@@ -3,18 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { schemes, users, donations, loadFromLocalStorage, saveToLocalStorage } from '../data/schemes';
+import { schemes, users, donations, loadFromLocalStorage } from '../data/schemes';
 import { CreateSchemeDialog } from '../components/CreateSchemeDialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatsCards } from '@/components/admin/StatsCards';
+import { SchemePerformanceTable } from '@/components/admin/SchemePerformanceTable';
+import { DonorsTable } from '@/components/admin/DonorsTable';
+import { RecentActivityTable } from '@/components/admin/RecentActivityTable';
 
 const AdminDashboard = () => {
   const { isAuthenticated, isAdmin } = useAuth();
@@ -101,28 +96,11 @@ const AdminDashboard = () => {
             <CreateSchemeDialog onSchemeCreated={handleSchemeCreated} />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Total Raised</CardDescription>
-                <CardTitle className="text-3xl">${totalRaised}</CardTitle>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Total Users</CardDescription>
-                <CardTitle className="text-3xl">{totalUsers}</CardTitle>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Total Donations</CardDescription>
-                <CardTitle className="text-3xl">{totalDonations}</CardTitle>
-              </CardHeader>
-            </Card>
-          </div>
+          <StatsCards
+            totalRaised={totalRaised}
+            totalUsers={totalUsers}
+            totalDonations={totalDonations}
+          />
           
           <Tabs defaultValue="schemes" className="w-full">
             <TabsList className="mb-6">
@@ -132,104 +110,15 @@ const AdminDashboard = () => {
             </TabsList>
             
             <TabsContent value="schemes">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Scheme Performance</CardTitle>
-                  <CardDescription>
-                    Overview of all fundraising schemes and their performance
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Scheme</TableHead>
-                        <TableHead>Amount Raised</TableHead>
-                        <TableHead>Donors</TableHead>
-                        <TableHead>Progress</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {schemePerformance.map(scheme => (
-                        <TableRow key={scheme.id}>
-                          <TableCell className="font-medium">{scheme.title}</TableCell>
-                          <TableCell>${scheme.totalRaised}</TableCell>
-                          <TableCell>{scheme.donorCount}</TableCell>
-                          <TableCell>{scheme.progress.toFixed(1)}%</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              <SchemePerformanceTable data={schemePerformance} />
             </TabsContent>
             
             <TabsContent value="donors">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top Donors</CardTitle>
-                  <CardDescription>
-                    List of users who have made the most contributions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Total Donated</TableHead>
-                        <TableHead># Donations</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {donorPerformance.map(donor => (
-                        <TableRow key={donor.id}>
-                          <TableCell className="font-medium">{donor.name}</TableCell>
-                          <TableCell>{donor.email}</TableCell>
-                          <TableCell>${donor.totalDonated}</TableCell>
-                          <TableCell>{donor.donationCount}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              <DonorsTable data={donorPerformance} />
             </TabsContent>
             
             <TabsContent value="recent">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Donations</CardTitle>
-                  <CardDescription>
-                    Most recent donation activity on the platform
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Donor</TableHead>
-                        <TableHead>Scheme</TableHead>
-                        <TableHead>Amount</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {recentDonations.map(donation => (
-                        <TableRow key={donation.id}>
-                          <TableCell>
-                            {new Date(donation.date).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>{donation.userName}</TableCell>
-                          <TableCell>{donation.schemeTitle}</TableCell>
-                          <TableCell>${donation.amount}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              <RecentActivityTable data={recentDonations} />
             </TabsContent>
           </Tabs>
         </div>

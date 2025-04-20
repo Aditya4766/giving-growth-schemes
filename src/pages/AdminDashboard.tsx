@@ -1,10 +1,10 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { schemes, users, donations, loadFromLocalStorage } from '../data/schemes';
+import { schemes, users, donations, loadFromLocalStorage, saveToLocalStorage } from '../data/schemes';
+import { CreateSchemeDialog } from '../components/CreateSchemeDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -20,7 +20,6 @@ const AdminDashboard = () => {
   const { isAuthenticated, isAdmin } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect if not logged in or not admin
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/admin' } });
@@ -32,20 +31,22 @@ const AdminDashboard = () => {
       return;
     }
     
-    // Load data from local storage
     loadFromLocalStorage();
   }, [isAuthenticated, isAdmin, navigate]);
+  
+  const handleSchemeCreated = (newScheme) => {
+    schemes.push(newScheme);
+    saveToLocalStorage();
+  };
   
   if (!isAuthenticated || !isAdmin) {
     return null;
   }
   
-  // Calculate platform statistics
   const totalRaised = donations.reduce((sum, donation) => sum + donation.amount, 0);
   const totalUsers = users.length;
   const totalDonations = donations.length;
   
-  // Get top schemes by amount raised
   const schemePerformance = schemes.map(scheme => {
     const schemeDonations = donations.filter(d => d.schemeId === scheme.id);
     const totalRaised = schemeDonations.reduce((sum, d) => sum + d.amount, 0);
@@ -60,7 +61,6 @@ const AdminDashboard = () => {
     };
   }).sort((a, b) => b.totalRaised - a.totalRaised);
   
-  // Get top donors
   const donorPerformance = users.map(user => {
     const userDonations = donations.filter(d => d.userId === user.id);
     const totalDonated = userDonations.reduce((sum, d) => sum + d.amount, 0);
@@ -75,7 +75,6 @@ const AdminDashboard = () => {
     };
   }).sort((a, b) => b.totalDonated - a.totalDonated);
   
-  // Get recent donations
   const recentDonations = [...donations]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10)
@@ -97,7 +96,10 @@ const AdminDashboard = () => {
       <Navbar />
       <main className="flex-grow bg-gray-50 py-10">
         <div className="container-custom">
-          <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            <CreateSchemeDialog onSchemeCreated={handleSchemeCreated} />
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card>

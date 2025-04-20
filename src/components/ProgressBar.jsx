@@ -2,13 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface ProgressBarProps {
-  current: number;
-  target: number;
-  className?: string;
-}
-
-const ProgressBar = ({ current, target, className }: ProgressBarProps) => {
+const ProgressBar = ({ current, target, className }) => {
   const percentage = Math.min(Math.round((current / target) * 100), 100);
   
   return (

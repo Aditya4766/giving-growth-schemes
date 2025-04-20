@@ -78,7 +78,7 @@ const DonationForm = ({ scheme }) => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Card>
       <CardHeader>

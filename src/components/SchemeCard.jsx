@@ -1,18 +1,12 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Scheme } from '../types';
 import ProgressBar from './ProgressBar';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-interface SchemeCardProps {
-  scheme: Scheme;
-  featured?: boolean;
-}
-
-const SchemeCard = ({ scheme, featured = false }: SchemeCardProps) => {
-  // Calculate days remaining
+const SchemeCard = ({ scheme, featured = false }) => {
   const endDate = new Date(scheme.endDate);
   const currentDate = new Date();
   const daysRemaining = Math.ceil((endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -58,8 +52,5 @@ const SchemeCard = ({ scheme, featured = false }: SchemeCardProps) => {
     </Card>
   );
 };
-
-// Import cn utility
-import { cn } from '@/lib/utils';
 
 export default SchemeCard;
